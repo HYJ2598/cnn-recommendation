@@ -15,8 +15,7 @@
 # 为了解决冷启动的问题，通常的做法是对于刚注册的用户，要求用户先选择自己感兴趣的话题、群组、商品、性格、喜欢的音乐类型等信息，比如豆瓣FM：
 # <img src="assets/IMG_6242_300.PNG"/>
 
-# ## 下载数据集
-# 运行下面代码把[`数据集`](http://files.grouplens.org/datasets/movielens/ml-1m.zip)下载下来
+
 
 # In[3]:
 
@@ -124,9 +123,9 @@ download_extract('ml-1m', data_dir)
 
 # ## 先来看看数据
 
-# 本项目使用的是MovieLens 1M 数据集，包含6000个用户在近4000部电影上的1亿条评论。
+#
 # 
-# 数据集分为三个文件：用户数据users.dat，电影数据movies.dat和评分数据ratings.dat。
+# 数据集分为三个文件：用户数据users.dat，煤炭数据coals.dat和评分数据ratings.dat。
 
 # ### 用户数据
 # 分别有用户ID、性别、年龄、职业ID和邮编等字段。
@@ -180,10 +179,7 @@ users.head()
 
 # 可以看出UserID、Gender、Age和Occupation都是类别字段，其中邮编字段是我们不使用的。
 
-# ### 电影数据
-# 分别有电影ID、电影名和电影风格等字段。
-# 
-# 数据中的格式：MovieID::Title::Genres
+
 # 
 # - Titles are identical to titles provided by the IMDB (including
 # year of release)
@@ -213,12 +209,11 @@ users.head()
 
 
 coal_title = ['CoalID','CoalName','Calorific','Territory']
-# movies = pd.read_table('./ml-1m/movies.dat', sep='::', header=None, names=movies_title, engine = 'python')
 coals = pd.read_csv('F:\Github\jupyter\ml-1m\coal.csv', sep=',', names=coal_title,header=None,  engine = 'python')
 coals.head()
 
 
-# MovieID是类别字段，Title是文本，Genres也是类别字段
+
 
 # ### 评分数据
 # 分别有用户ID、电影ID、评分和时间戳等字段。
@@ -295,7 +290,7 @@ def load_data():
     CoalName_set.add('<PAD>')
     CoalName2int = {val:ii for ii, val in enumerate(CoalName_set)}
     print(CoalName2int)
-    #将电影类型转成等长数字列表，长度是18
+    #将煤炭名称类型转成等长数字列表，长度是18
     CoalName_map = {val:[CoalName2int[row] for row in val.split()] for ii,val in enumerate(set(coals['CoalName']))}
     print(CoalName_map)
 
@@ -646,7 +641,7 @@ def get_user_feature_layer(uid_embed_layer, gender_embed_layer, age_embed_layer,
     return user_combine_layer, user_combine_layer_flat
 
 
-# #### 定义Movie ID的嵌入矩阵
+# #### 定义Coal ID的嵌入矩阵
 
 # In[33]:
 
@@ -662,7 +657,7 @@ def get_calorific_layer(calorific):
         calorific_embed_matrix = tf.Variable(tf.random_uniform([calorific_max, embed_dim//2], -1, 1), name = "calorific_embed_matrix")
         calorific_embed_layer = tf.nn.embedding_lookup(calorific_embed_matrix, calorific, name = "calorific_embed_layer")
     return calorific_embed_layer
-# #### 对电影类型的多个嵌入向量做加和
+# #### 对煤炭类型的多个嵌入向量做加和
 
 # In[34]:
 
@@ -743,42 +738,10 @@ def get_coal_territory_layers(territory):
 
 
 
-# #### Movie Title的文本卷积网络实现
-
-# In[35]:
 
 
-# def get_coal_cnn_layer(movie_titles):
-#     #从嵌入矩阵中得到电影名对应的各个单词的嵌入向量
-#     with tf.name_scope("movie_embedding"):
-#         movie_title_embed_matrix = tf.Variable(tf.random_uniform([movie_title_max, embed_dim], -1, 1), name = "movie_title_embed_matrix")
-#         movie_title_embed_layer = tf.nn.embedding_lookup(movie_title_embed_matrix, movie_titles, name = "movie_title_embed_layer")
-#         movie_title_embed_layer_expand = tf.expand_dims(movie_title_embed_layer, -1)
-#
-#     #对文本嵌入层使用不同尺寸的卷积核做卷积和最大池化
-#     pool_layer_lst = []
-#     for window_size in window_sizes:
-#         with tf.name_scope("movie_txt_conv_maxpool_{}".format(window_size)):
-#             filter_weights = tf.Variable(tf.truncated_normal([window_size, embed_dim, 1, filter_num],stddev=0.1),name = "filter_weights")
-#             filter_bias = tf.Variable(tf.constant(0.1, shape=[filter_num]), name="filter_bias")
-#
-#             conv_layer = tf.nn.conv2d(movie_title_embed_layer_expand, filter_weights, [1,1,1,1], padding="VALID", name="conv_layer")
-#             relu_layer = tf.nn.relu(tf.nn.bias_add(conv_layer,filter_bias), name ="relu_layer")
-#
-#             maxpool_layer = tf.nn.max_pool(relu_layer, [1,sentences_size - window_size + 1 ,1,1], [1,1,1,1], padding="VALID", name="maxpool_layer")
-#             pool_layer_lst.append(maxpool_layer)
-#
-#     #Dropout层
-#     with tf.name_scope("pool_dropout"):
-#         pool_layer = tf.concat(pool_layer_lst, 3, name ="pool_layer")
-#         max_num = len(window_sizes) * filter_num
-#         pool_layer_flat = tf.reshape(pool_layer , [-1, 1, max_num], name = "pool_layer_flat")
-#
-#         dropout_layer = tf.nn.dropout(pool_layer_flat, dropout_keep_prob, name = "dropout_layer")
-#     return pool_layer_flat, dropout_layer
 
-
-# #### 将Movie的各个层一起做全连接
+# #### 将煤炭的各个层一起做全连接
 
 # In[36]:
 
@@ -819,7 +782,7 @@ with train_graph.as_default():
     pool_layer_flat1, dropout_layer1 = get_coal_name_layers(coal_name)
     # 获取销售地区的特征向量
     pool_layer_flat2, dropout_layer2 = get_coal_territory_layers(territory)
-    #得到电影特征
+    #得到煤炭特征
     coal_combine_layer, coal_combine_layer_flat = get_coal_feature_layer(coal_id_embed_layer,
                                                                                 calorific_embed_layer,
                                                                                 dropout_layer1,
@@ -827,12 +790,12 @@ with train_graph.as_default():
                                                                             )
     #计算出评分，要注意两个不同的方案，inference的名字（name值）是不一样的，后面做推荐时要根据name取得tensor
     with tf.name_scope("inference"):
-        # 将用户特征和电影特征作为输入，经过全连接，输出一个值的方案
+        # 将用户特征和煤炭特征作为输入，经过全连接，输出一个值的方案
         # inference_layer = tf.concat([user_combine_layer_flat, coal_combine_layer_flat], 1)  #(?, 200)
         # inference = tf.layers.dense(inference_layer, 1,
         #                             kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
         #                             kernel_regularizer=tf.nn.l2_loss, name="inference")
-        # 简单的将用户特征和电影特征做矩阵乘法得到一个预测评分
+        # 简单的将用户特征和煤炭特征做矩阵乘法得到一个预测评分
        # inference = tf.matmul(user_combine_layer_flat, tf.transpose(movie_combine_layer_flat))
         inference = tf.reduce_sum(user_combine_layer_flat * coal_combine_layer_flat, axis=1)
         inference = tf.expand_dims(inference, axis=1)
@@ -1099,7 +1062,7 @@ def get_tensors(loaded_graph):
     return uid, user_gender, user_age, user_job, coal_id, coal_name,calorific,territory,  targets, lr, dropout_keep_prob, inference, coal_combine_layer_flat, user_combine_layer_flat
 
 
-# ## 指定用户和电影进行评分
+# ## 指定用户和煤炭进行评分
 # 这部分就是对网络做正向传播，计算得到预测的评分
 
 # In[49]:
@@ -1149,8 +1112,8 @@ def rating_movie(user_id_val, coal_id_val):
 print(rating_movie(234, 100))
 
 
-# ## 生成Movie特征矩阵
-# 将训练好的电影特征组合成电影特征矩阵并保存到本地
+# ## 生成煤炭特征矩阵
+# 将训练好的煤炭特征组合成电影特征矩阵并保存到本地
 
 # In[55]:
 
@@ -1235,11 +1198,11 @@ users_matrics = pickle.load(open('users_matrics.p', mode='rb'))
 users_matrics = pickle.load(open('users_matrics.p', mode='rb'))
 
 
-# ## 开始推荐电影
-# 使用生产的用户特征矩阵和电影特征矩阵做电影推荐
+# ## 开始推荐煤炭
+# 使用生产的用户特征矩阵和煤炭特征矩阵做电影推荐
 
 # ### 推荐同类型的电影
-# 思路是计算当前看的电影特征向量与整个电影特征矩阵的余弦相似度，取相似度最大的top_k个，这里加了些随机选择在里面，保证每次的推荐稍稍有些不同。
+# 思路是计算当前看的煤炭特征向量与整个电影特征矩阵的余弦相似度，取相似度最大的top_k个，这里加了些随机选择在里面，保证每次的推荐稍稍有些不同。
 
 # In[59]:
 
@@ -1255,7 +1218,7 @@ def recommend_same_type_movie(coal_id_val, top_k = 20):
         norm_coal_matrics = tf.sqrt(tf.reduce_sum(tf.square(coal_matrics), 1, keep_dims=True))
         normalized_coal_matrics = coal_matrics / norm_coal_matrics#这种煤炭特征矩阵/相对煤炭特征
 
-        #推荐同类型的电影
+        #推荐同类型的煤炭
         probs_embeddings = (coal_matrics[coalid2idx[coal_id_val]]).reshape([1, 200])#把煤炭矩阵转化成1行200列的
         probs_similarity = tf.matmul(probs_embeddings, tf.transpose(normalized_coal_matrics))#1行200列的当前煤炭特征向量乘整个煤炭特征矩阵
         # print('----------维度-----------------------')
@@ -1292,8 +1255,8 @@ def recommend_same_type_movie(coal_id_val, top_k = 20):
 recommend_same_type_movie(100, 10)
 
 
-# ### 推荐您喜欢的电影
-# 思路是使用用户特征向量与电影特征矩阵计算所有电影的评分，取评分最高的top_k个，同样加了些随机选择部分。
+# ### 推荐您喜欢的煤炭
+# 思路是使用用户特征向量与煤炭特征矩阵计算所有电影的评分，取评分最高的top_k个，同样加了些随机选择部分。
 
 # In[61]:
 
@@ -1306,7 +1269,7 @@ def recommend_your_favorite_movie(user_id_val, top_k = 10):
         loader = tf.train.import_meta_graph(load_dir + '.meta')
         loader.restore(sess, load_dir)
 
-        #推荐您喜欢的电影
+        #推荐您喜欢的煤炭
         probs_embeddings = (users_matrics[user_id_val-1]).reshape([1, 200])
 
         probs_similarity = tf.matmul(probs_embeddings, tf.transpose(coal_matrics))#tf.transpose更换维度序列tf.matmul矩阵a*b而tf.multiply矩阵各元素相乘
@@ -1339,10 +1302,10 @@ def recommend_your_favorite_movie(user_id_val, top_k = 10):
 recommend_your_favorite_movie(234, 10)
 
 
-# ### 看过这个电影的人还看了（喜欢）哪些电影
-# - 首先选出喜欢某个电影的top_k个人，得到这几个人的用户特征向量。
-# - 然后计算这几个人对所有电影的评分
-# - 选择每个人评分最高的电影作为推荐
+# ### 买过这个煤炭的人还（喜欢）哪些煤炭
+# - 首先选出喜欢某个煤炭的top_k个人，得到这几个人的用户特征向量。
+# - 然后计算这几个人对所有煤炭的评分
+# - 选择每个人评分最高的煤炭作为推荐
 # - 同样加入了随机选择
 
 # In[63]:
